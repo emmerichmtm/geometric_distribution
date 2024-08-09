@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 
+
 # Manhattan distance function (fitness function)
 def manhattan_distance(x1, y1, x2, y2):
     return abs(x1 - x2) + abs(y1 - y2)
+
 
 # Simulate correlated Bernoulli process to generate c1 and c2
 def simulate_bernoulli_walk(N, p1, p2):
@@ -11,12 +13,22 @@ def simulate_bernoulli_walk(N, p1, p2):
     c1, c2 = compute_first_success_times(df_samples)
     return c1, c2
 
-# Mutation operator
+
+# Updated mutation operator with self-adaptive step-size control
 def mutate(x1, x2, p1, p2, N):
-    c1, c2 = simulate_bernoulli_walk(N, p1, p2)
+    # Update step-sizes
+    new_p1 = p1 * np.exp(np.random.normal(0, 0.01))
+    new_p2 = p2 * np.exp(np.random.normal(0, 0.01))
+
+    # Simulate Bernoulli walk to generate c1 and c2 using the new step-sizes
+    c1, c2 = simulate_bernoulli_walk(N, new_p1, new_p2)
+
+    # Mutate x1 and x2 using the generated c1 and c2
     new_x1 = x1 + c1
     new_x2 = x2 + c2
-    return new_x1, new_x2
+
+    return new_x1, new_x2, new_p1, new_p2
+
 
 # Evolution strategy (μ, λ)
 def evolution_strategy(mu, lambda_, num_generations, N):
@@ -44,10 +56,10 @@ def evolution_strategy(mu, lambda_, num_generations, N):
         offspring = []
         for _ in range(lambda_):
             parent = np.random.choice(selected_population)
-            new_x1, new_x2 = mutate(parent['x1'], parent['x2'], parent['p1'], parent['p2'], N)
+            new_x1, new_x2, new_p1, new_p2 = mutate(parent['x1'], parent['x2'], parent['p1'], parent['p2'], N)
             # Calculate the fitness of the offspring immediately after mutation
             offspring_fitness = manhattan_distance(new_x1, new_x2, 0, 0)
-            offspring.append({'x1': new_x1, 'x2': new_x2, 'p1': parent['p1'], 'p2': parent['p2'], 'fitness': offspring_fitness})
+            offspring.append({'x1': new_x1, 'x2': new_x2, 'p1': new_p1, 'p2': new_p2, 'fitness': offspring_fitness})
 
         # Replace the current population with the offspring
         population = offspring
@@ -62,6 +74,7 @@ def evolution_strategy(mu, lambda_, num_generations, N):
     best_individual = min(population, key=lambda x: x['fitness'])
     return best_individual
 
+
 # Simulate correlated Bernoulli process
 def simulate_correlated_bernoulli(N, p1, p2, rho):
     mean = [0, 0]
@@ -75,6 +88,7 @@ def simulate_correlated_bernoulli(N, p1, p2, rho):
     df = pd.DataFrame(bernoulli_samples, columns=['Bernoulli_Variable_1', 'Bernoulli_Variable_2'])
 
     return df
+
 
 # Compute the first success times c1 and c2
 def compute_first_success_times(df):
@@ -98,8 +112,9 @@ def compute_first_success_times(df):
 
     return c1, c2
 
+
 # Main execution
 if __name__ == "__main__":
-    print("Running Evolution Strategy...")
+    print("Running Evolution Strategy with Self-Adaptive Mutation...")
     best_solution = evolution_strategy(mu=10, lambda_=50, num_generations=100, N=50)
     print(f"Best Solution: {best_solution}")

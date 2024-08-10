@@ -35,8 +35,6 @@ def apply_frank_copula_to_geometric_difference(p1, p2, rho, n=1000):
     Z1 = G1_1 - G2_1
     Z2 = G1_2 - G2_2
 
-    print(f"Z1 variance: {np.var(Z1)}, Z2 variance: {np.var(Z2)}")
-
     # Step 2: Transform to uniform variables using empirical CDF
     U1 = np.array([np.mean(Z1 <= z) for z in Z1])
     U2 = np.array([np.mean(Z2 <= z) for z in Z2])
@@ -53,21 +51,16 @@ def apply_frank_copula_to_geometric_difference(p1, p2, rho, n=1000):
     Z1_prime = np.percentile(Z1, U1 * 100)
     Z2_prime = np.percentile(Z2, U2_prime * 100)
 
-    print(f"Z1_prime variance: {np.var(Z1_prime)}, Z2_prime variance: {np.var(Z2_prime)}")
-
     return Z1_prime, Z2_prime
 
 
 # Example usage:
 p1 = 0.5  # success probability for the first geometric distribution
 p2 = 0.7  # success probability for the second geometric distribution
-rho = -0.9  # desired correlation between the differences
+rho = 0.5  # desired correlation between the differences
 
 Z1_prime, Z2_prime = apply_frank_copula_to_geometric_difference(p1, p2, rho, n=10000)
 
 # Check the empirical correlation
-if np.var(Z1_prime) == 0 or np.var(Z2_prime) == 0:
-    print("One of the distributions has zero variance; cannot compute correlation.")
-else:
-    empirical_rho = np.corrcoef(Z1_prime, Z2_prime)[0, 1]
-    print(f"Empirical correlation: {empirical_rho}")
+empirical_rho = np.corrcoef(Z1_prime, Z2_prime)[0, 1]
+print(f"Empirical correlation: {empirical_rho}")

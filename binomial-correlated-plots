@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D  # For 3D plotting
 # Set parameters for the binomial distributions
 n_trials = 10  # Number of trials for each binomial distribution
 p_success1 = 0.5  # Probability of success for the first binomial
-p_success2 = 0.6  # Probability of success for the second binomial
+p_success2 = 0.5  # Probability of success for the second binomial
 num_samples = 5000  # Number of samples
 
 # Define a range of positive and negative correlation values

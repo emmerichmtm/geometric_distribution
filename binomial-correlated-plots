@@ -1,0 +1,39 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import binom, norm
+
+# Set parameters for the binomial distributions
+n_trials = 10  # Number of trials for each binomial distribution
+p_success1 = 0.5  # Probability of success for the first binomial
+p_success2 = 0.5  # Probability of success for the second binomial
+num_samples = 1000  # Number of samples
+
+# Define a range of positive and negative correlation values
+correlation_values = [-0.8, -0.0, -0.3, 0.8]  # Negative and positive correlations included
+
+# Create a subplot for each correlation value
+fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+axes = axes.flatten()
+
+for i, corr in enumerate(correlation_values):
+    # Generate correlated samples using copula with specified correlation
+    normal_samples = np.random.multivariate_normal([0, 0], [[1, corr], [corr, 1]], num_samples)
+    u_samples = norm.cdf(normal_samples)
+
+    # Generate binomial samples based on the copula-transformed data
+    binom_samples1 = binom.ppf(u_samples[:, 0], n_trials, p_success1).astype(int)
+    binom_samples2 = binom.ppf(u_samples[:, 1], n_trials, p_success2).astype(int)
+
+    # Create a 2D histogram for the joint distribution
+    heatmap_data, x_edges, y_edges = np.histogram2d(binom_samples1, binom_samples2, bins=range(n_trials + 2))
+
+    # Plot heatmap
+    sns.heatmap(heatmap_data.T, cmap="Blues", cbar=True, annot=False, fmt="g", ax=axes[i])
+    axes[i].set_title(f"Heatmap of Bivariate Binomial Distribution (Correlation={corr})")
+    axes[i].set_xlabel("Binomial Distribution 1 (n=10, p=0.5)")
+    axes[i].set_ylabel("Binomial Distribution 2 (n=10, p=0.6)")
+
+# Adjust layout for clear visualization
+plt.tight_layout()
+plt.show()

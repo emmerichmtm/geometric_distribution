@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import binom, norm
+from mpl_toolkits.mplot3d import Axes3D  # For 3D plotting
 
 # Set parameters for the binomial distributions
 n_trials = 10  # Number of trials for each binomial distribution
@@ -16,16 +17,15 @@ correlation_values = [-0.8, -0.5, -0.3, 0.8]  # Negative and positive correlatio
 mean1 = n_trials * p_success1
 mean2 = n_trials * p_success2
 
-# Translation amounts (if needed)
+# Translation amounts (not used in this code snippet)
 translation_x = -10
 translation_y = -10
 
 # Set up plot parameters for better visibility
 sns.set(font_scale=1.2)  # Increase font size
 
-# Create a subplot for each correlation value
-fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-axes = axes.flatten()
+# Create a figure for subplots
+fig = plt.figure(figsize=(15, 12))
 
 for i, corr in enumerate(correlation_values):
     # Generate correlated samples using copula with specified correlation
@@ -43,31 +43,32 @@ for i, corr in enumerate(correlation_values):
     binom_samples2_centered = binom_samples2 - mean2
 
     # Create a 2D histogram for the joint distribution, with bins covering -10 to 10
-    bins_range = range(-10, 11)  # Bins from -10 to 10 inclusive
-    heatmap_data, x_edges, y_edges = np.histogram2d(
-        binom_samples1_centered, binom_samples2_centered, bins=[bins_range, bins_range]
+    hist, x_edges, y_edges = np.histogram2d(
+        binom_samples1_centered, binom_samples2_centered, bins=range(-10, 11)
     )
 
-    # Plot heatmap
-    sns.heatmap(
-        heatmap_data.T,
-        cmap="Blues",
-        cbar=True,
-        annot=False,
-        fmt="g",
-        ax=axes[i],
-        xticklabels=range(-10, 11),
-        yticklabels=range(-10, 11),
+    # Prepare data for 3D bar plot
+    xpos, ypos = np.meshgrid(
+        x_edges[:-1] + 0.5, y_edges[:-1] + 0.5, indexing="ij"
+    )  # Bin centers
+    xpos = xpos.ravel()
+    ypos = ypos.ravel()
+    zpos = np.zeros_like(xpos)
+
+    dx = dy = 1 * np.ones_like(zpos)  # Bin width
+    dz = hist.ravel()  # Bin heights
+
+    # Create 3D subplot
+    ax = fig.add_subplot(2, 2, i + 1, projection='3d')
+    ax.bar3d(xpos, ypos, zpos, dx, dy, dz, shade=True, color='blue')
+    ax.set_title(
+        f"3D Histogram of Centered Bivariate Binomial Distribution\n(Correlation={corr})",
+        fontsize=14,
     )
-    axes[i].set_title(
-        f"Heatmap of Centered Bivariate Binomial Distribution\n(Correlation={corr})",
-        fontsize=16,
-    )
-    axes[i].set_xlabel("Centered Binomial Distribution 1", fontsize=14)
-    axes[i].set_ylabel("Centered Binomial Distribution 2", fontsize=14)
-    axes[i].set_xticks(np.arange(len(bins_range)) + 0.5)
-    axes[i].set_yticks(np.arange(len(bins_range)) + 0.5)
-    axes[i].invert_yaxis()  # To match the orientation of the heatmap with the axes
+    ax.set_xlabel("Centered Binomial Distribution 1", fontsize=12)
+    ax.set_ylabel("Centered Binomial Distribution 2", fontsize=12)
+    ax.set_zlabel("Frequency", fontsize=12)
+    ax.view_init(elev=30, azim=225)  # Adjust view angle for better visualization
 
 # Adjust layout for clear visualization
 plt.tight_layout()

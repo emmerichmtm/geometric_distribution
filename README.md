@@ -57,3 +57,6 @@ N = 1000  # Number of samples
 p1 = 0.8  # Probability of success for the first Bernoulli variable
 p2 = 0.8  # Probability of success for the second Bernoulli variable
 rho = 0.0 # Correlation coefficient between X1 and X2
+
+# Additional scripts
+plot_2d_sigma_1_sigma2.py
